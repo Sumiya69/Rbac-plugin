@@ -1,2 +1,10 @@
-# Rbac-plugin
-Creating a Backstage app in this Rbac plugin also installed 
+# [Backstage](https://backstage.io)
+
+This is your newly scaffolded Backstage App, Good Luck!
+
+To start the app, run:
+
+```sh
+yarn install
+yarn start
+```

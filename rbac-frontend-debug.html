@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBAC Frontend Debug</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 8px 16px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>RBAC Frontend Debug Tool</h1>
+    <p>Testing various endpoint patterns the RBAC frontend might be using</p>
+    
+    <button onclick="testAllPatterns()">Test All Endpoint Patterns</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const testConfigs = [
+            { name: 'Port 8080 with /api/rbac', baseUrl: 'http://localhost:8080', prefix: '/api/rbac' },
+            { name: 'Port 8080 without prefix', baseUrl: 'http://localhost:8080', prefix: '' },
+            { name: 'Port 7007 with /api/rbac', baseUrl: 'http://localhost:7007', prefix: '/api/rbac' },
+            { name: 'Port 7007 with /api/permission', baseUrl: 'http://localhost:7007', prefix: '/api/permission' },
+        ];
+        
+        const endpoints = ['/policies', '/plugins', '/permissions'];
+
+        async function testAllPatterns() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing All Endpoint Patterns...</h2>';
+
+            for (const config of testConfigs) {
+                const configDiv = document.createElement('div');
+                configDiv.innerHTML = `<h3>${config.name}</h3>`;
+                resultsDiv.appendChild(configDiv);
+                
+                for (const endpoint of endpoints) {
+                    await testEndpoint(config.baseUrl + config.prefix + endpoint, `${config.name}${endpoint}`, configDiv);
+                }
+            }
+        }
+
+        async function testEndpoint(url, name, parentDiv) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+
+            try {
+                console.log(`Testing: ${url}`);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                testDiv.className += response.ok ? ' success' : ' error';
+                testDiv.innerHTML = `
+                    <h4>${name}</h4>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2).substring(0, 500)}${JSON.stringify(data, null, 2).length > 500 ? '...' : ''}</pre>
+                `;
+
+            } catch (error) {
+                testDiv.className += ' error';
+                testDiv.innerHTML = `
+                    <h4>${name}</h4>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+
+            parentDiv.appendChild(testDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            setTimeout(testAllPatterns, 2000);
+        };
+    </script>
+</body>
+</html>

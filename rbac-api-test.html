@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBAC API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>RBAC API Test</h1>
+    
+    <button onclick="testPolicies()">Test Policies</button>
+    <button onclick="testPlugins()">Test Plugins</button>
+    <button onclick="testUsers()">Test Users</button>
+    <button onclick="testPermissions()">Test Permissions</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testEndpoint(endpoint, name) {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                const response = await fetch(`http://localhost:7007/api/rbac${endpoint}`);
+                const data = await response.json();
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result ' + (response.ok ? 'success' : 'error');
+                resultDiv.innerHTML = `
+                    <h3>${name} (${response.status})</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                resultsDiv.appendChild(resultDiv);
+                
+            } catch (error) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `
+                    <h3>${name} - Error</h3>
+                    <pre>${error.message}</pre>
+                `;
+                resultsDiv.appendChild(resultDiv);
+            }
+        }
+        
+        function testPolicies() {
+            testEndpoint('/policies', 'Policies');
+        }
+        
+        function testPlugins() {
+            testEndpoint('/plugins', 'Plugins');
+        }
+        
+        function testUsers() {
+            testEndpoint('/users', 'Users');
+        }
+        
+        function testPermissions() {
+            testEndpoint('/permissions', 'Permissions');
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            setTimeout(() => {
+                testPolicies();
+                testPlugins();
+                testUsers();
+                testPermissions();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

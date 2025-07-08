@@ -1,0 +1,69 @@
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:3000
+
+organization:
+  name: My Company
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  auth:
+    allowGuestAccess: true
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+permission:
+  enabled: true
+  rbac:
+    policy: ${RBAC_POLICY_PATH:./rbac-policies/rbac-policy.csv}
+
+rbac:
+  backend:
+    baseUrl: http://localhost:7007
+    policy:
+      path: ${RBAC_POLICY_PATH:./rbac-policies/rbac-policy.csv}
+
+# Feature flags
+features:
+  rbac:
+    enforcePermissions: true
+
+techdocs:
+  builder: 'local'
+  generator:
+    runIn: 'local'
+  publisher:
+    type: 'local'
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location,User, Group]
+  locations:
+    - type: file
+      target: ../../examples/entities.yaml
+    - type: file
+      target: ../../examples/template/template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+auth:
+  environment: development
+  providers:
+    guest:
+      development: {}

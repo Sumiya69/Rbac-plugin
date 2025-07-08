@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBAC Debug Tool</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 8px 16px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>RBAC API Debug Tool</h1>
+    <p>This tool will test various RBAC API endpoints to find the correct one.</p>
+    
+    <button onclick="testAllEndpoints()">Test All RBAC Endpoints</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const baseUrl = 'http://localhost:8080';
+        const endpoints = [
+            '/api/rbac/policies',
+            '/api/rbac/permission/policies', 
+            '/api/rbac/permission-policies',
+            '/api/rbac/policy-entities',
+            '/api/rbac/config',
+            '/api/rbac/plugins',
+            '/api/rbac/permissions',
+            '/api/rbac/users',
+            '/api/permission/policies',
+            '/api/policy/policies',
+            '/api/policies'
+        ];
+
+        async function testAllEndpoints() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing RBAC Endpoints...</h2>';
+
+            for (const endpoint of endpoints) {
+                await testEndpoint(endpoint);
+            }
+        }
+
+        async function testEndpoint(endpoint) {
+            const resultsDiv = document.getElementById('results');
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+
+            try {
+                console.log(`Testing: ${baseUrl}${endpoint}`);
+                const response = await fetch(`${baseUrl}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                testDiv.className += response.ok ? ' success' : ' error';
+                testDiv.innerHTML = `
+                    <h3>${endpoint}</h3>
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+            } catch (error) {
+                testDiv.className += ' error';
+                testDiv.innerHTML = `
+                    <h3>${endpoint}</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+
+            resultsDiv.appendChild(testDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            setTimeout(testAllEndpoints, 2000);
+        };
+    </script>
+</body>
+</html>
